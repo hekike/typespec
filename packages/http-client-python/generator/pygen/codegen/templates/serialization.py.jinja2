@@ -749,16 +749,16 @@ class Serializer:  # pylint: disable=too-many-public-methods
         :param str name: The name of the query parameter.
         :param dict data: The dictionary to be serialized.
         :param str data_type: The type to be serialized from.
-        :rtype: list
-        :returns: List of serialized query parameters
+        :rtype: dict
+        :returns: Dictionary of parameter names to values
         """
         internal_data_type = data_type[1:-1]  # Remove { and }
-        result = []
+        result = {}
         
         for key, value in data.items():
             try:                
                 # Create the parameter name with bracket notation
-                param_name = f"[{key}]"
+                param_name = f"{name}[{key}]"
                 
                 # Handle list values specially
                 if isinstance(value, list):
@@ -779,7 +779,7 @@ class Serializer:  # pylint: disable=too-many-public-methods
                     else:
                         # Don't URL encode brackets and commas for list values to preserve [1,2] format
                         list_value = quote(list_str, safe="[],")
-                    result.append(f"{param_name}={list_value}")
+                    result[param_name] = list_value
                 else:
                     # For non-list values, serialize normally
                     serialized_value = self.serialize_data(value, internal_data_type, **kwargs)
@@ -787,7 +787,7 @@ class Serializer:  # pylint: disable=too-many-public-methods
                         serialized_value = str(serialized_value)
                     else:
                         serialized_value = quote(str(serialized_value), safe="")
-                    result.append(f"{param_name}={serialized_value}")
+                    result[param_name] = serialized_value
                     
             except ValueError as err:
                 if isinstance(err, SerializationError):
