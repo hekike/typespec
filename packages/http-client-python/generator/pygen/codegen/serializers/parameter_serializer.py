@@ -167,20 +167,34 @@ class ParameterSerializer:
         # Handle dictionary parameters specially
         from ..models.dictionary_type import DictionaryType
         if isinstance(param.type, DictionaryType):
-            # For dictionary parameters, serialize and update _params with individual key-value pairs
+            # For dictionary parameters, serialize and add individual key-value pairs
             serialize_call = self.serialize_parameter(param, serializer_name)
             if not param.optional and (param.in_method_signature or param.constant):
                 retval = [
                     f"dict_params = {serialize_call}",
                     f"if dict_params:",
-                    f"    _{kwarg_name}.update(dict_params)",
+                    f"    for param_name, param_value in dict_params:",
+                    f"        if param_name in _{kwarg_name}:",
+                    f"            # Convert to list if not already a list",
+                    f"            if not isinstance(_{kwarg_name}[param_name], list):",
+                    f"                _{kwarg_name}[param_name] = [_{kwarg_name}[param_name]]",
+                    f"            _{kwarg_name}[param_name].append(param_value)",
+                    f"        else:",
+                    f"            _{kwarg_name}[param_name] = param_value",
                 ]
             else:
                 retval = [
                     f"if {param.full_client_name} is not None:",
                     f"    dict_params = {serialize_call}",
                     f"    if dict_params:",
-                    f"        _{kwarg_name}.update(dict_params)",
+                    f"        for param_name, param_value in dict_params:",
+                    f"            if param_name in _{kwarg_name}:",
+                    f"                # Convert to list if not already a list",
+                    f"                if not isinstance(_{kwarg_name}[param_name], list):",
+                    f"                    _{kwarg_name}[param_name] = [_{kwarg_name}[param_name]]",
+                    f"                _{kwarg_name}[param_name].append(param_value)",
+                    f"            else:",
+                    f"                _{kwarg_name}[param_name] = param_value",
                 ]
             return retval
 
