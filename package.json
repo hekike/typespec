@@ -83,5 +83,8 @@
       "prod",
       "resolutions"
     ]
+  },
+  "dependencies": {
+    "@typespec/http-client-python": "link:../../../Library/pnpm/global/5/node_modules/@typespec/http-client-python"
   }
 }
